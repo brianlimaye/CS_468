@@ -1,7 +1,5 @@
 /* 
-
   SimpleRShellClient.c
-
   Created by Xinyuan Wang for CS 468
  
   All rights reserved.
@@ -112,7 +110,6 @@ void errmesg(char *msg)
 
 /*------------------------------------------------------------------------------
  * TCPrecv - read TCP socket sock w/ flag for up to buflen bytes into buf
-
  * return:
 	>=0: number of bytes read
 	<0: error
@@ -407,21 +404,15 @@ main(int argc, char *argv[])
 				}
 			}
 
-			/*else if(MSG_RESPONSE.message_type == RSHELL_RESULT) {
-
-				struct tcp_message MSG_RESPONSE4 = read_from_socket(socket);
-
-                                if(MSG_RESPONSE4.message_type == RSHELL_RESULT) {
-
-                                	while(MSG_RESPONSE4.payload[0] > 0) {
-
-                                        	MSG_RESPONSE4.payload++;
-                                                printf(MSG_RESPONSE4.payload);
-                                                MSG_RESPONSE4 = read_from_socket(socket);
-                                        }
-                                }
-
-			}*/
+			else if(MSG_RESPONSE.message_type == RSHELL_RESULT) {
+				
+				do {
+                                	if(MSG_RESPONSE.payload_len > 0) {
+                                        	printf("%s", MSG_RESPONSE.payload);
+                                                MSG_RESPONSE = read_from_socket(socket);                                                        			       }
+                                   } 
+				   while(MSG_RESPONSE.mr == '1');
+			}
 		}
 	
 	}
@@ -429,4 +420,3 @@ main(int argc, char *argv[])
 
 	exit(0);
 }
-

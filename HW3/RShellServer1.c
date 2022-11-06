@@ -1,11 +1,7 @@
 /* 
-
   SimpleRShellServer.c
-
   Created by Xinyuan Wang for CS 468
-
   All rights reserved.
-
 */
 
 #include <sys/types.h>
@@ -61,7 +57,7 @@ typedef struct auth_user {
 AUTH_USER * cache = NULL;
 
 void insert_auth(char *user) {
-
+	
     time_t now = time(NULL);
     AUTH_USER *new = malloc(sizeof(AUTH_USER));
     if (! new) {
@@ -80,6 +76,10 @@ void insert_auth(char *user) {
 }
 
 int is_auth(char *user) {
+
+    if(cache == NULL) {
+       return 0;
+    }
 
     int auth = 0;
     AUTH_USER *expired;
@@ -255,7 +255,6 @@ reaper(int signum)
 /*------------------------------------------------------------------------
  *  This is a very simplified remote shell, there are some shell command it 
 	can not handle properly:
-
 	cd
  *------------------------------------------------------------------------
  */
@@ -321,13 +320,14 @@ void execute_command(char * command, char * id, int socket) {
 	struct tcp_message R_SHELL_RESULT;
 	FILE * output;
 	char buffer[1024];
+	char input_cmd[strlen(command) + 6];
 
 	memset(buffer, 0, 1024);
 
 	printf("Executing command...\n");
 
-	output = popen(command, "r");
-	//strcat(command, "2>&1");
+	sprintf(input_cmd, "%s 2>&1", command);
+	output = popen(input_cmd, "r");
 
 	if(output == NULL) {
 
@@ -357,7 +357,7 @@ void execute_command(char * command, char * id, int socket) {
 
 		//printf("RSHELL_RESULT Successfully written to socket.\n"); 
 	
-		sleep(0.5);
+		sleep(0.01);
 	}
 
 	R_SHELL_RESULT.payload_len = 0;
@@ -373,7 +373,6 @@ void execute_command(char * command, char * id, int socket) {
 void write_to_socket(struct tcp_message message, int socket) {
 
 	/*if(*/write(socket, &(message.message_type), TYPE_MAX_SIZE); /*!= TYPE_MAX_SIZE) {
-
 			fprintf(stderr, "Cannot write TCP message type to socket!");
 			close(socket);
 			return;
@@ -499,7 +498,7 @@ main(int argc, char *argv[])
 			case 0:		/* child */
 				close(msock);
 				
-				if((message = read_from_socket(ssock)).message_type > '0') {
+				while((message = read_from_socket(ssock)).message_type > '0') {
 						printf("Server Recieved Client Req\n");
 
 				
@@ -555,10 +554,15 @@ AUTH_REQUEST.mr = '0';
 	}
 											execute_command(message.payload, message.id, ssock);		
 	 
-								}
+						                                 }
+				                               }
+						}
+							       
+						else {
+							execute_command(message.payload, message.id, ssock);
 						}
 				}
-				}
+				
 				
 				close(ssock);
 				exit(r);
@@ -573,4 +577,3 @@ AUTH_REQUEST.mr = '0';
 	}
 	close(msock);
 }
-
